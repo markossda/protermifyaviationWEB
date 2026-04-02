@@ -20,6 +20,7 @@ BUTTON_FILE = ROOT / "button.html"
 HEAD_INCLUDE_FILE = ROOT / "headerarasina.html"
 SECOND_HEAD_INCLUDE_FILE = ROOT / "bunudaheadarasina.html"
 BING_AUTH_FILE = ROOT / "BingSiteAuth.xml"
+YANDEX_AUTH_FILE = ROOT / "yandex_8434391f80b05a39.html"
 
 SITE_URL = "https://protermifyaviation.com"
 PRIMARY_DOMAIN = "https://protermify.com"
@@ -1745,6 +1746,8 @@ def copy_static_files() -> None:
         shutil.copy2(SECOND_HEAD_INCLUDE_FILE, DIST_DIR / "bunudaheadarasina.html")
     if BING_AUTH_FILE.exists():
         shutil.copy2(BING_AUTH_FILE, DIST_DIR / "BingSiteAuth.xml")
+    if YANDEX_AUTH_FILE.exists():
+        shutil.copy2(YANDEX_AUTH_FILE, DIST_DIR / "yandex_8434391f80b05a39.html")
 
 
 def build_css() -> None:
