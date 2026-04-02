@@ -48,6 +48,7 @@ LOCALES: Dict[str, Dict[str, str]] = {
         "nav_glossary": "Glossary",
         "nav_categories": "Categories",
         "nav_methodology": "Methodology",
+        "nav_faq": "FAQ",
         "section_featured": "What this aviation site covers",
         "section_categories": "Aviation categories",
         "section_terms": "Featured aviation terms",
@@ -136,6 +137,7 @@ LOCALES: Dict[str, Dict[str, str]] = {
         "nav_glossary": "Sozluk",
         "nav_categories": "Kategoriler",
         "nav_methodology": "Metodoloji",
+        "nav_faq": "SSS",
         "section_featured": "Bu sitede neler var",
         "section_categories": "Havacilik kategorileri",
         "section_terms": "One cikan terimler",
@@ -240,6 +242,7 @@ TRANSLATION_KEYS = [
     "nav_glossary",
     "nav_categories",
     "nav_methodology",
+    "nav_faq",
     "section_featured",
     "section_categories",
     "section_terms",
@@ -582,6 +585,7 @@ def page_header(locale: str, depth: int) -> str:
             <a href="{escape(locale_path(locale, '/about/'))}">{escape(t['nav_about'])}</a>
             <a href="{escape(locale_path(locale, '/aviation/'))}">{escape(t['nav_glossary'])}</a>
             <a href="{escape(locale_path(locale, '/methodology/'))}">{escape(t['nav_methodology'])}</a>
+            <a href="{escape(locale_path(locale, '/faq/'))}">{escape(t['nav_faq'])}</a>
             <a href="{escape(APP_URL)}" rel="noopener noreferrer">{escape(t['cta_secondary'])}</a>
           </nav>
         </div>
@@ -620,6 +624,7 @@ def page_footer(locale: str, depth: int) -> str:
           <h2>{escape(t['section_ecosystem'])}</h2>
           <ul class="link-list">
             <li><a href="{escape(locale_path(locale, '/about/'))}">{escape(t['nav_about'])}</a></li>
+            <li><a href="{escape(locale_path(locale, '/faq/'))}">{escape(t['nav_faq'])}</a></li>
             <li><a href="{escape(PRIMARY_DOMAIN)}" rel="noopener noreferrer">protermify.com</a></li>
             <li><a href="{escape(APP_URL)}" rel="noopener noreferrer">Termify iOS App</a></li>
             <li><a href="{escape(SITE_URL)}" rel="noopener noreferrer">protermifyaviation.com</a></li>
@@ -904,6 +909,76 @@ def build_locale_switcher(locale: str, links: Dict[str, str]) -> str:
     """
 
 
+def faq_page_content(locale: str, data: dict) -> Dict[str, object]:
+    term_count = len(data["terms"])
+    category_count = len(set(term["subcategory"] for term in data["terms"]))
+    locale_count = len(LOCALES)
+    if locale == "tr":
+        items = [
+            {
+                "question": "Protermify Aviation nedir?",
+                "answer": "Protermify Aviation, ICAO ve FAA dayanakli havacilik Ingilizcesi terimlerini statik HTML sayfalari halinde yayinlayan cok dilli bir referans sitesidir. Terimler kategori, kullanim ornegi, sinav baglami ve ilgili baglantilarla birlikte sunulur.",
+            },
+            {
+                "question": "Bu site kimler icin uygundur?",
+                "answer": "Site; pilotlar, hava trafik kontrolorleri, kabin ekipleri, havacilik ogrencileri ve aviation English calisan kullanicilar icin tasarlandi. Hem hizli terim bakisi hem de paylasilabilir referans URL'leri icin uygundur.",
+            },
+            {
+                "question": "Bu site statik HTML mi?",
+                "answer": "Evet. Cekirdek icerik istemci tarafi render gerektirmeden statik HTML olarak yayinlanir. Bu yapi tarama, indeksleme ve hizli sayfa teslimi icin bilerek tercih edildi.",
+            },
+            {
+                "question": "Kaynaklar nelerdir?",
+                "answer": f"Icerik yapisi agirlikli olarak {LOCALES[locale]['source_icao']} ve {LOCALES[locale]['source_faa']} referanslari uzerine kuruludur. Terimler bu kaynaklardan turetilen tanim, phraseology ve operasyonel baglamlarla organize edilir.",
+            },
+            {
+                "question": "Sitede kac terim ve kac kategori var?",
+                "answer": f"Mevcut build icinde {term_count} terim, {category_count} kategori ve {locale_count} dil cikisi bulunur. Bu sayilar veri seti guncellendikce otomatik olarak yenilenir.",
+            },
+            {
+                "question": "Site ile Termify uygulamasi arasindaki fark nedir?",
+                "answer": "Website acik referans sayfalari, paylasilabilir baglantilar ve hizli glossary lookup icin uygundur. Termify iOS uygulamasi ise mobil calisma, ders akislari ve tekrarli pratik tarafini guclendirir.",
+            },
+        ]
+        return {
+            "title": "Sik Sorulan Sorular",
+            "intro": "Bu sayfa Protermify Aviation hakkinda en cok sorulan temel sorulari ve kisa cevaplari bir araya getirir.",
+            "items": items,
+        }
+
+    items = [
+        {
+            "question": "What is Protermify Aviation?",
+            "answer": "Protermify Aviation is a multilingual aviation English reference site published as static HTML pages. It organizes ICAO and FAA-backed terminology into category and term pages with definitions, usage examples, exam context, and related links.",
+        },
+        {
+            "question": "Who is this site for?",
+            "answer": "The site is built for pilots, air traffic controllers, cabin crew, aviation students, and aviation English learners. It works both as a quick lookup glossary and as a shareable reference resource.",
+        },
+        {
+            "question": "Is this website static HTML?",
+            "answer": "Yes. The core content is published as static HTML without relying on client-side rendering. That structure is intentional to support cleaner crawling, indexing, and fast page delivery.",
+        },
+        {
+            "question": "What are the primary sources?",
+            "answer": f"The terminology framework is primarily aligned with {LOCALES[locale]['source_icao']} and {LOCALES[locale]['source_faa']}. Pages combine those source-backed definitions with operational context and related terminology.",
+        },
+        {
+            "question": "How much content does the site currently cover?",
+            "answer": f"The current build includes {term_count} terms, {category_count} categories, and {locale_count} locale outputs. These totals update automatically as the source dataset changes.",
+        },
+        {
+            "question": "How is the website different from the Termify app?",
+            "answer": "The website is best for open reference pages, public URLs, and fast glossary lookup. The Termify iOS app is better for guided mobile study, lesson flows, and repeated practice.",
+        },
+    ]
+    return {
+        "title": "Frequently Asked Questions",
+        "intro": "This page collects the most common questions about Protermify Aviation in a compact question-and-answer format.",
+        "items": items,
+    }
+
+
 def build_home_page(data: dict) -> None:
     counts = Counter(term["subcategory"] for term in data["terms"])
     top_terms = data["terms"][:12]
@@ -1038,6 +1113,7 @@ def build_home_page(data: dict) -> None:
                 <h2>Protermify + Termify</h2>
                 <p>{escape(cfg['ecosystem_body'])}</p>
                 <p><a class="text-link" href="{escape(locale_path(locale, '/about/'))}">{escape(cfg['nav_about'])}</a></p>
+                <p><a class="text-link" href="{escape(locale_path(locale, '/faq/'))}">{escape(cfg['nav_faq'])}</a></p>
                 <ul class="link-list">
                   <li><a href="{escape(PRIMARY_DOMAIN)}" rel="noopener noreferrer">protermify.com</a></li>
                   <li><a href="{escape(APP_URL)}" rel="noopener noreferrer">Professional English: Termify</a></li>
@@ -1260,6 +1336,7 @@ def build_methodology_pages(data: dict) -> None:
               <p>{escape(cfg['ecosystem_body'])}</p>
               <ul class="link-list">
                 <li><a href="{escape(locale_path(locale, '/about/'))}">{escape(cfg['nav_about'])}</a></li>
+                <li><a href="{escape(locale_path(locale, '/faq/'))}">{escape(cfg['nav_faq'])}</a></li>
                 <li><a href="{escape(PRIMARY_DOMAIN)}" rel="noopener noreferrer">protermify.com</a></li>
                 <li><a href="{escape(APP_URL)}" rel="noopener noreferrer">Professional English: Termify</a></li>
               </ul>
@@ -1296,6 +1373,73 @@ def build_methodology_pages(data: dict) -> None:
                 body=body,
                 depth=depth,
                 schema_blocks=schema_blocks,
+            ),
+        )
+
+
+def build_faq_pages(data: dict) -> None:
+    for locale, cfg in LOCALES.items():
+        depth = 1 if locale == "en" else 2
+        path = locale_dir(locale) / "faq" / "index.html"
+        alternates = {code: locale_url(code, "/faq/") for code in LOCALES}
+        alternates["x-default"] = SITE_URL + "/faq/"
+        content = faq_page_content(locale, data)
+        bread = [
+            {"label": cfg["nav_home"], "href": locale_path(locale, "/"), "url": locale_url(locale, "/")},
+            {"label": cfg["nav_faq"], "href": locale_path(locale, "/faq/"), "url": locale_url(locale, "/faq/")},
+        ]
+        faq_cards = []
+        for item in content["items"]:
+            faq_cards.append(
+                f"""
+                <article class="card faq-card">
+                  <h2>{escape(item['question'])}</h2>
+                  <p>{escape(item['answer'])}</p>
+                </article>
+                """
+            )
+
+        body = f"""
+        {page_header(locale, depth)}
+        <main class="section">
+          <div class="shell">
+            {breadcrumb(bread)}
+            <section class="section-heading">
+              <p class="eyebrow">Protermify Aviation</p>
+              <h1>{escape(content['title'])}</h1>
+              <p class="lead">{escape(content['intro'])}</p>
+            </section>
+            {build_locale_switcher(locale, alternates)}
+            <section class="faq-stack">
+              {''.join(faq_cards)}
+            </section>
+          </div>
+        </main>
+        {page_footer(locale, depth)}
+        """
+        write_text(
+            path,
+            page_shell(
+                locale=locale,
+                title=f"{content['title']} | Protermify Aviation",
+                description=str(content["intro"]),
+                canonical=locale_url(locale, "/faq/"),
+                alternates=alternates,
+                body=body,
+                depth=depth,
+                schema_blocks=[
+                    org_schema(),
+                    breadcrumb_schema(bread),
+                    web_page_schema(
+                        page_type="WebPage",
+                        locale=locale,
+                        name=content["title"],
+                        description=content["intro"],
+                        url=locale_url(locale, "/faq/"),
+                        about={"@type": "Thing", "name": "Aviation English FAQ"},
+                    ),
+                    faq_schema(list(content["items"])),
+                ],
             ),
         )
 
@@ -1741,6 +1885,7 @@ def build_robots_and_sitemap(data: dict) -> None:
         urls.append(locale_url(locale, "/about/"))
         urls.append(locale_url(locale, "/aviation/"))
         urls.append(locale_url(locale, "/methodology/"))
+        urls.append(locale_url(locale, "/faq/"))
 
     category_slugs = {
         dedupe_subcategory_slug(term["subcategory"])
@@ -1771,6 +1916,21 @@ def build_robots_and_sitemap(data: dict) -> None:
     write_text(
         DIST_DIR / "robots.txt",
         f"""User-agent: *
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
 Allow: /
 
 Sitemap: {SITE_URL}/sitemap.xml
@@ -2257,6 +2417,21 @@ img {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.faq-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.faq-card h2 {
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+  font-size: 1.2rem;
+}
+
+.faq-card p {
+  margin: 0;
+}
+
 @media (max-width: 960px) {
   .hero-grid,
   .prose-grid,
@@ -2353,10 +2528,44 @@ img {
   }
 
   .floating-cta-stack {
-    left: 0.75rem;
-    right: 0.75rem;
-    bottom: 0.75rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
     width: auto;
+    gap: 0;
+    align-items: flex-end;
+  }
+
+  .floating-cta {
+    box-shadow: 0 -14px 30px rgba(24, 33, 43, 0.14);
+  }
+
+  .floating-cta-app {
+    border-radius: 18px 18px 0 0;
+    padding: 0.72rem 1rem 0.82rem;
+  }
+
+  .floating-cta-app strong {
+    font-size: 0.94rem;
+  }
+
+  .floating-cta-app span {
+    font-size: 0.77rem;
+  }
+
+  .floating-cta-ai {
+    width: min(210px, 58vw);
+    margin-right: 0.6rem;
+    padding: 0.5rem 0.78rem 0.62rem;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .floating-cta-ai strong {
+    font-size: 0.82rem;
+  }
+
+  .floating-cta-ai span {
+    font-size: 0.69rem;
   }
 }
         """,
@@ -2381,6 +2590,7 @@ def build() -> None:
     build_home_page(data)
     build_about_pages(data)
     build_methodology_pages(data)
+    build_faq_pages(data)
     build_glossary_pages(data)
     build_term_pages(data)
     build_llms_files(data)
