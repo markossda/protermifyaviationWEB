@@ -19,6 +19,7 @@ CSS_FILE = ASSETS_DIR / "site.css"
 BUTTON_FILE = ROOT / "button.html"
 HEAD_INCLUDE_FILE = ROOT / "headerarasina.html"
 SECOND_HEAD_INCLUDE_FILE = ROOT / "bunudaheadarasina.html"
+BING_AUTH_FILE = ROOT / "BingSiteAuth.xml"
 
 SITE_URL = "https://protermifyaviation.com"
 PRIMARY_DOMAIN = "https://protermify.com"
@@ -1742,6 +1743,8 @@ def copy_static_files() -> None:
         shutil.copy2(HEAD_INCLUDE_FILE, DIST_DIR / "headerarasina.html")
     if SECOND_HEAD_INCLUDE_FILE.exists():
         shutil.copy2(SECOND_HEAD_INCLUDE_FILE, DIST_DIR / "bunudaheadarasina.html")
+    if BING_AUTH_FILE.exists():
+        shutil.copy2(BING_AUTH_FILE, DIST_DIR / "BingSiteAuth.xml")
 
 
 def build_css() -> None:
