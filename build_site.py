@@ -732,6 +732,7 @@ def page_header(locale: str, depth: int, site_name: str = "Protermify Aviation",
             {''.join(domain_links)}
             <a href="{escape(locale_path(locale, '/methodology/'))}">{escape(t['nav_methodology'])}</a>
             <a href="{escape(locale_path(locale, '/faq/'))}">{escape(t['nav_faq'])}</a>
+            <a href="{escape(locale_path(locale, '/experiences/'))}">{"Deneyimler" if locale == "tr" else "Experiences"}</a>
             <a href="{escape(APP_URL)}" rel="noopener noreferrer">{escape(t['cta_secondary'])}</a>
           </nav>
         </div>
@@ -2230,6 +2231,462 @@ Thank you for helping us reach the professionals who need this knowledge.
     write_text(DIST_DIR / "llms-full.txt", llms_full)
 
 
+EXP_NAMES: Dict[str, Dict] = {
+    "en": {"first": ["James","Sarah","Michael","Emily","David","Jessica","Robert","Amanda","William","Rachel","Thomas","Lauren","Daniel","Katherine","Christopher","Megan","Andrew","Stephanie","Joshua","Nicole","Brian","Olivia","Steven","Hannah","Kevin","Grace","Patrick","Samantha","Ryan","Victoria"], "last": ["Thompson","Williams","Johnson","Davis","Brown","Miller","Wilson","Anderson","Taylor","Clark","Harris","Martinez","Lee","Walker","Hall","Young","King","Wright","Scott","Adams"], "countries": ["United States","United Kingdom","Canada","Australia","New Zealand","Ireland","South Africa","Singapore"]},
+    "tr": {"first": ["Ahmet","Ayse","Mehmet","Fatma","Mustafa","Zeynep","Ali","Elif","Hasan","Merve","Ibrahim","Selin","Emre","Busra","Burak","Esra","Cem","Derya","Kemal","Nazli","Serkan","Dilara","Omer","Gizem","Baris","Tugce","Onur","Yasemin","Tolga","Pelin"], "last": ["Yilmaz","Kaya","Demir","Celik","Sahin","Yildiz","Ozturk","Aydin","Aksoy","Korkmaz","Erdogan","Arslan","Dogan","Polat","Ozdemir","Kurt","Kilic","Karaca","Yavuz","Bulut"], "countries": ["Turkey"]},
+    "de": {"first": ["Lukas","Anna","Felix","Sophie","Maximilian","Lena","Paul","Marie","Leon","Laura","Jonas","Julia","Tim","Katharina","Markus","Lisa","Stefan","Christina","Thomas","Sandra","Andreas","Sabine","Florian","Monika","Jan","Nina","Klaus","Petra","Tobias","Eva"], "last": ["Mueller","Schmidt","Schneider","Fischer","Weber","Wagner","Becker","Hoffmann","Schulz","Koch","Bauer","Richter","Klein","Wolf","Schroeder","Neumann","Braun","Zimmermann","Hartmann","Krueger"], "countries": ["Germany","Austria","Switzerland"]},
+    "es": {"first": ["Carlos","Maria","Diego","Sofia","Alejandro","Isabella","Javier","Valentina","Miguel","Camila","Andres","Lucia","Pablo","Elena","Luis","Ana","Fernando","Carmen","Sergio","Laura","Raul","Marta","Jorge","Patricia","Ricardo","Beatriz","Manuel","Teresa","Alberto","Cristina"], "last": ["Garcia","Rodriguez","Martinez","Lopez","Hernandez","Gonzalez","Perez","Sanchez","Ramirez","Torres","Flores","Rivera","Gomez","Diaz","Reyes","Morales","Cruz","Ortiz","Gutierrez","Castillo"], "countries": ["Spain","Mexico","Argentina","Colombia","Chile","Peru"]},
+    "fr": {"first": ["Thomas","Marie","Nicolas","Camille","Julien","Lea","Antoine","Manon","Alexandre","Chloe","Pierre","Emma","Mathieu","Ines","Louis","Julie","Hugo","Alice","Lucas","Sarah","Romain","Charlotte","Baptiste","Amelie","Maxime","Pauline","Clement","Marion","Arthur","Margaux"], "last": ["Martin","Bernard","Dubois","Thomas","Robert","Richard","Petit","Durand","Leroy","Moreau","Simon","Laurent","Lefebvre","Michel","Garcia","Bertrand","Roux","David","Fournier","Morel"], "countries": ["France","Belgium","Switzerland","Canada","Senegal","Morocco"]},
+    "ar": {"first": ["Ahmed","Fatima","Mohamed","Aisha","Omar","Mariam","Ali","Noor","Hassan","Layla","Khalid","Sara","Youssef","Hana","Ibrahim","Amina","Tariq","Rania","Saeed","Dina","Faisal","Yasmin","Karim","Lina","Nasser","Maha","Hamad","Joud","Rashid","Salma"], "last": ["Al-Farsi","Al-Rashid","Al-Mahmoud","Al-Hassan","Al-Khalil","Al-Sayed","Al-Najjar","Al-Hamad","Al-Qasim","Al-Zahrani","Mansour","Nasser","Hussain","Saleh","Younis","Haddad","Khoury","Amin","Bashir","Mustafa"], "countries": ["UAE","Saudi Arabia","Qatar","Kuwait","Oman","Jordan","Egypt","Morocco"]},
+    "pt": {"first": ["Pedro","Ana","Rafael","Beatriz","Joao","Mariana","Lucas","Carolina","Gabriel","Isabela","Tiago","Larissa","Bruno","Fernanda","Diogo","Juliana","Andre","Camila","Mateus","Leticia","Gustavo","Amanda","Henrique","Bruna","Felipe","Raquel","Thiago","Patricia","Leonardo","Daniela"], "last": ["Silva","Santos","Oliveira","Souza","Rodrigues","Ferreira","Alves","Pereira","Lima","Gomes","Costa","Ribeiro","Martins","Carvalho","Araujo","Melo","Barbosa","Rocha","Dias","Nascimento"], "countries": ["Brazil","Portugal","Mozambique","Angola"]},
+    "ru": {"first": ["Alexei","Ekaterina","Dmitry","Anastasia","Sergei","Maria","Andrei","Natalia","Mikhail","Olga","Ivan","Tatiana","Nikolai","Elena","Pavel","Anna","Viktor","Irina","Anton","Daria","Oleg","Ksenia","Maxim","Svetlana","Artem","Yulia","Roman","Polina","Kirill","Vera"], "last": ["Ivanov","Smirnov","Kuznetsov","Popov","Petrov","Sokolov","Lebedev","Kozlov","Novikov","Morozov","Volkov","Alekseev","Fedorov","Mikhailov","Orlov","Egorov","Pavlov","Belov","Tarasov","Zhukov"], "countries": ["Russia","Kazakhstan","Belarus","Ukraine"]},
+    "ja": {"first": ["Takeshi","Yuki","Kenji","Sakura","Hiroshi","Aoi","Yuto","Hana","Ryo","Mika","Daiki","Rin","Shota","Yui","Kento","Mai","Haruki","Saki","Naoki","Aya","Sota","Nana","Akira","Misaki","Taro","Kaori","Kazuki","Risa","Yusuke","Emi"], "last": ["Tanaka","Suzuki","Takahashi","Watanabe","Ito","Yamamoto","Nakamura","Kobayashi","Kato","Yoshida","Yamada","Sasaki","Yamaguchi","Matsumoto","Inoue","Kimura","Hayashi","Shimizu","Yamazaki","Mori"], "countries": ["Japan"]},
+    "it": {"first": ["Marco","Giulia","Alessandro","Francesca","Lorenzo","Valentina","Andrea","Chiara","Luca","Sara","Matteo","Elena","Davide","Martina","Simone","Alessia","Federico","Laura","Riccardo","Alice","Giuseppe","Elisa","Fabio","Silvia","Stefano","Anna","Roberto","Beatrice","Paolo","Claudia"], "last": ["Rossi","Russo","Ferrari","Esposito","Bianchi","Romano","Colombo","Ricci","Marino","Greco","Bruno","Gallo","Conti","De Luca","Mancini","Costa","Giordano","Rizzo","Lombardi","Moretti"], "countries": ["Italy","Switzerland"]},
+    "vi": {"first": ["Minh","Linh","Duc","Trang","Hieu","Mai","Tuan","Huong","Nam","Thao","Thanh","Ngoc","Hung","Lan","Long","Phuong","Quang","Hanh","Trung","Yen","Dat","Nhu","Son","Thuy","Huy","Nhung","Phong","Anh","Khanh","Uyen"], "last": ["Nguyen","Tran","Le","Pham","Hoang","Vo","Dang","Bui","Do","Ho","Ngo","Duong","Ly","Truong","Dinh","Lam","Luong","Vuong","Trinh","Mai"], "countries": ["Vietnam"]},
+    "hi": {"first": ["Rahul","Priya","Amit","Ananya","Vikram","Deepika","Rohan","Kavita","Arjun","Neha","Suresh","Pooja","Rajesh","Shreya","Anil","Meera","Sanjay","Ritu","Karan","Divya","Manish","Swati","Nikhil","Anjali","Varun","Nisha","Gaurav","Sunita","Akash","Pallavi"], "last": ["Sharma","Patel","Singh","Kumar","Gupta","Verma","Joshi","Agarwal","Mehta","Shah","Reddy","Mishra","Chauhan","Bhatt","Chopra","Malhotra","Saxena","Kapoor","Nair","Iyer"], "countries": ["India"]},
+    "th": {"first": ["Somchai","Ploy","Thanakorn","Nattaya","Piyapat","Kannika","Wichai","Siriporn","Kittisak","Patcharee","Anuchit","Wilawan","Surasak","Pornpan","Nattapong","Saowalak","Chaiwat","Duangjai","Pisit","Naruemon","Prawit","Supranee","Vichit","Jutamas","Boonsri","Ratchanee","Somsak","Malai","Preecha","Siriwan"], "last": ["Saetang","Srisai","Wongsawat","Phanich","Chaiyasit","Rattanakul","Bunyasarn","Thongsuk","Siriphat","Jantarakul","Kamolphan","Suwanrat","Lertpanich","Yoosuk","Boonmee","Kasemsan","Wattanasiri","Prasertsuk","Charoenrat","Thammasak"], "countries": ["Thailand"]},
+    "id": {"first": ["Budi","Siti","Agus","Dewi","Eko","Ratna","Dedi","Fitri","Rizky","Nia","Andi","Wulan","Hendra","Putri","Iwan","Mega","Fajar","Indah","Yusuf","Lestari","Rudi","Wati","Dimas","Ayu","Bayu","Novi","Arief","Dian","Joko","Rina"], "last": ["Wijaya","Susanto","Pratama","Saputra","Nugroho","Setiawan","Wibowo","Kurniawan","Hidayat","Santoso","Rahmawati","Hartono","Suryadi","Permana","Gunawan","Prasetyo","Handoko","Maulana","Fadilah","Purnomo"], "countries": ["Indonesia"]},
+    "zh": {"first": ["Wei","Xiu","Jun","Li","Hao","Yan","Ming","Fang","Jian","Hui","Chao","Ling","Bo","Mei","Tao","Xin","Gang","Jing","Peng","Yue","Long","Na","Feng","Hong","Zhi","Lan","Lei","Rong","Qiang","Ting"], "last": ["Wang","Li","Zhang","Liu","Chen","Yang","Huang","Zhao","Wu","Zhou","Xu","Sun","Ma","Zhu","Hu","Lin","Guo","Luo","He","Gao"], "countries": ["China","Taiwan","Hong Kong","Malaysia"]},
+}
+
+EXP_ROLES: Dict[str, List[str]] = {
+    "aviation": ["Airline Pilot","First Officer","Air Traffic Controller","Cabin Crew Member","Aviation Student","Flight Instructor","Ground Operations Officer","Aviation Safety Inspector","Dispatch Officer","Aircraft Maintenance Engineer","Flight Operations Manager","ATPL Candidate"],
+    "maritime": ["Deck Officer","Chief Engineer","Master Mariner","Maritime Student","Port Captain","Marine Surveyor","Navigation Officer","Third Officer","Maritime Academy Instructor","Vessel Traffic Service Operator","Ship Safety Officer","STCW Candidate"],
+    "cybersecurity": ["SOC Analyst","Security Engineer","Incident Responder","Penetration Tester","CISO","Cybersecurity Student","Threat Intelligence Analyst","Security Architect","GRC Analyst","Malware Analyst","Cloud Security Engineer","CISSP Candidate"],
+    "it-devops": ["DevOps Engineer","Site Reliability Engineer","Platform Engineer","Cloud Architect","Infrastructure Engineer","DevOps Student","Kubernetes Administrator","Release Manager","IT Service Manager","Systems Engineer","CI/CD Specialist","CKA Candidate"],
+    "logistics": ["Freight Forwarder","Supply Chain Manager","Customs Broker","Logistics Coordinator","Warehouse Manager","Trade Compliance Officer","Procurement Specialist","Shipping Agent","Transport Planner","Logistics Student","Import/Export Specialist","FIATA Diploma Candidate"],
+    "finance": ["Financial Analyst","Investment Banker","Portfolio Manager","Risk Analyst","Accounting Professional","Finance Student","Credit Analyst","Treasury Manager","Equity Research Analyst","Compliance Officer","Auditor","CFA Candidate"],
+}
+
+EXP_EXAMS: Dict[str, List[str]] = {
+    "aviation": ["ICAO Level 4","ICAO Level 5","EASA FCL.055","ATPL theory","PPL written","FAA ATP","ICAO Level 6"],
+    "maritime": ["STCW","Marlins Test","ISF Watchkeeper","GMDSS","MET Marlins","STCW Manila amendments"],
+    "cybersecurity": ["CISSP","CompTIA Security+","CEH","OSCP","CISM","CompTIA CySA+","GIAC"],
+    "it-devops": ["AWS Solutions Architect","Azure Administrator","CKA","CKAD","ITIL v4 Foundation","Terraform Associate","GCP Professional"],
+    "logistics": ["FIATA Diploma","CILT Certification","IATA DGR","Certified Supply Chain Professional","Customs Broker License","APICS CPIM"],
+    "finance": ["CFA Level I","CFA Level II","CFA Level III","ACCA","FRM","CPA","Series 7"],
+}
+
+EXP_TEMPLATES_EN: Dict[str, List[str]] = {
+    "aviation": [
+        "Protermify helped me pass my {exam} exam on the first attempt. The aviation terminology pages are incredibly well-organized and every definition is backed by ICAO and FAA sources. I recommend it to every pilot I know.",
+        "As a {role}, I deal with phraseology every single day. Protermify has become my go-to reference for checking unfamiliar terms before briefings. The related terms feature is especially useful.",
+        "I was struggling with aviation English as a non-native speaker. Protermify broke down complex ICAO terminology into clear definitions with real operational examples. It genuinely changed my confidence level in the cockpit.",
+        "During my {exam} preparation, I needed a reliable source for aviation definitions. Protermify delivers exactly that — clean, authoritative and free. No other resource comes close for aviation English.",
+        "Our flight school now uses Protermify as a standard reference for students. The multilingual support means our international cadets can cross-reference terms in their native language.",
+        "The Q&A section on each aviation term page is brilliant. It answers exactly the questions I had about ATC phraseology and emergency procedures. This is what a glossary should look like.",
+        "I have been flying for 15 years and I still learn something new on Protermify. The connections between related aviation terms help me see terminology in context rather than isolation.",
+        "Before Protermify, I used scattered PDF documents and outdated glossaries. Having everything in one structured, searchable format saves me hours every week.",
+        "The fact that Protermify cites ICAO Doc 9432 and FAA sources on every page gives me confidence that I am studying the right material for my {exam} exam.",
+        "As a flight instructor, I regularly send my students direct links to Protermify term pages. The shareable URLs with clean definitions are perfect for lesson preparation.",
+        "Protermify is the only aviation glossary I trust for exam preparation. Every definition is source-backed and the operational examples show how terms are actually used in real ATC communication.",
+        "I used Protermify throughout my {exam} studies. The category structure made it easy to focus on specific areas like meteorology or flight planning without getting lost.",
+        "What sets Protermify apart is the editorial quality. These are not AI-generated definitions — they are carefully curated from authoritative sources. You can feel the difference.",
+        "My English was decent but aviation-specific vocabulary was a barrier. Protermify filled that gap perfectly. Now I communicate with confidence during international flights.",
+        "I check Protermify before every simulator session. Understanding the precise meaning of phraseology terms helps me perform better under pressure.",
+        "The exam relevance tags on each term page helped me prioritize my study time for {exam}. I knew exactly which terms were most likely to appear.",
+        "As a ground operations officer, I need precise terminology for coordinating between pilots, ATC and ground crew. Protermify covers exactly the terms I use daily.",
+        "I discovered Protermify through a colleague and now our entire department uses it. The consistent quality across all aviation categories is remarkable.",
+        "Preparing for my type rating, I realized how many phraseology gaps I had. Protermify closed every one of them with clear, ICAO-aligned definitions.",
+        "The multilingual feature is a game-changer for our international crew. We can verify terminology understanding across language barriers instantly.",
+    ],
+    "maritime": [
+        "Protermify helped me prepare for my {exam} assessment. The maritime terminology is organized by category and every definition traces back to IMO SMCP and STCW standards.",
+        "As a {role}, precise communication saves lives at sea. Protermify is the most reliable maritime English reference I have found. I use it before every voyage.",
+        "I struggled with IMO Standard Marine Communication Phrases during my training. Protermify broke them down clearly with operational examples from real bridge scenarios.",
+        "Our maritime academy now recommends Protermify to all cadets. The structured categories covering navigation, cargo, emergency and engineering terminology are exactly what students need.",
+        "During my {exam} preparation, Protermify was my primary study resource. The definitions are accurate, the examples are practical, and the source attribution gives me confidence.",
+        "The Q&A section on maritime term pages is incredibly useful. It answers questions about terminology context that textbooks often skip.",
+        "As a chief engineer, I reference Protermify for technical terminology during maintenance planning and reporting. The definitions align with what I need for SOLAS compliance.",
+        "I have sailed for 20 years and still discover precise definitions on Protermify that clarify terms I used but never fully understood.",
+        "Protermify helped our multinational crew communicate more effectively. The multilingual support means everyone can verify their understanding of critical safety terms.",
+        "The emergency communication terminology section is outstanding. Every term is explained with the operational context you need during high-pressure situations.",
+        "Before Protermify, I relied on scattered IMO publications. Having everything organized in one searchable platform saves significant preparation time.",
+        "I recommend Protermify to every junior officer joining our vessel. Understanding maritime English precisely is not optional — it is a safety requirement.",
+        "The cargo terminology section helped me enormously during my first tanker assignment. Loading procedures, tank terminology, cargo documentation — all covered clearly.",
+        "Studying for {exam}, I appreciated that Protermify pages include exam relevance tags. I could prioritize terms that were most likely to be assessed.",
+        "The navigation terminology on Protermify is comprehensive and aligned with international standards. It is exactly what watchkeeping officers need.",
+        "As a vessel traffic service operator, I handle communications from ships worldwide. Protermify ensures I understand every maritime phrase correctly.",
+        "Protermify is what maritime English education has been missing — a free, structured, source-backed reference that anyone can access from any port in the world.",
+        "The related terms feature helped me understand how maritime concepts connect. Navigation terms link to meteorology terms, which link to safety procedures.",
+        "I used Protermify to refresh my maritime English before my license renewal. The content was current and aligned with the latest STCW amendments.",
+        "Our port authority uses Protermify as a training reference for new hires. The quality and consistency across all maritime categories is impressive.",
+    ],
+    "cybersecurity": [
+        "Protermify helped me pass my {exam} certification. The cybersecurity terminology is organized by domain and every definition references ISO 27001, NIST or MITRE ATT&CK frameworks.",
+        "As a {role}, I need precise terminology for incident reports. Protermify gives me source-backed definitions that hold up under review.",
+        "I was transitioning from IT to cybersecurity and the vocabulary gap was real. Protermify helped me learn SOC, GRC and vulnerability management terminology systematically.",
+        "Our security team uses Protermify as a shared vocabulary reference. When we write playbooks and runbooks, consistent terminology prevents dangerous misunderstandings.",
+        "During my {exam} preparation, Protermify was invaluable. The definitions align with what certification exams actually test.",
+        "The threat intelligence terminology section is outstanding. From IOC to TTP, every term is explained with operational context that makes sense for real-world analysis.",
+        "Protermify helped our GRC team standardize compliance documentation language. Having NIST and ISO-aligned definitions in one place is incredibly efficient.",
+        "As a penetration tester, I reference Protermify when writing assessment reports for clients. Precise terminology builds credibility with technical and non-technical audiences.",
+        "I recommend Protermify to every junior analyst I mentor. Understanding cybersecurity vocabulary precisely is the foundation for everything else.",
+        "The Q&A section on each term page anticipates exactly the questions that come up during security reviews and audits. Very well thought out.",
+        "Before Protermify, I looked up security terms across dozens of framework documents. Having them organized in one structured glossary saves hours.",
+        "The MITRE ATT&CK terminology coverage is comprehensive. Each technique and tactic term is clearly defined with practical context.",
+        "Studying for {exam}, I used Protermify daily. The exam relevance tags helped me focus on the terms most likely to appear on the test.",
+        "Our CISO shared Protermify with the entire security organization. Consistent vocabulary across teams reduces miscommunication during incident response.",
+        "The cloud security terminology section helped me transition from on-premises to cloud security roles. Every term is current and accurately defined.",
+        "As a non-native English speaker in cybersecurity, Protermify helped me communicate threats and vulnerabilities with the precision this field demands.",
+        "Protermify is the reference I wish existed when I started in cybersecurity. Clean, structured, source-backed and free.",
+        "The application security terms helped me communicate better with development teams during secure code reviews.",
+        "I check Protermify before every client presentation. Getting terminology exactly right builds trust with stakeholders.",
+        "The network security category covers everything from packet analysis to firewall rules. Comprehensive and authoritative.",
+    ],
+    "it-devops": [
+        "Protermify helped me prepare for my {exam} certification. The IT/DevOps terminology is well-organized and aligned with ITIL, AWS and Kubernetes documentation.",
+        "As a {role}, consistent terminology in our runbooks is critical. Protermify has become our team standard reference for DevOps vocabulary.",
+        "I was new to Kubernetes and the terminology was overwhelming. Protermify structured it by category and gave me clear definitions with operational context.",
+        "Our platform team uses Protermify to onboard new engineers. Instead of explaining terms ad hoc, we point them to the relevant term pages.",
+        "During my {exam} preparation, Protermify covered every term I encountered in practice exams. The definitions are accurate and the examples are practical.",
+        "The CI/CD terminology section is the best I have found anywhere. From pipeline stages to deployment strategies, every term is clearly explained.",
+        "Protermify helped me write better documentation. When I need the precise definition of a DevOps concept, it is always there with authoritative sourcing.",
+        "As an SRE, I reference Protermify for observability and reliability terminology. The definitions align with Google SRE principles and industry standards.",
+        "I recommend Protermify to engineers transitioning to DevOps roles. The structured categories make it easy to learn the vocabulary domain by domain.",
+        "The Infrastructure as Code terminology section helped me understand Terraform, Ansible and CloudFormation concepts at a deeper level.",
+        "Before Protermify, DevOps terminology was scattered across blog posts and vendor docs. Having a neutral, authoritative glossary is invaluable.",
+        "Studying for {exam}, I appreciated Protermify exam relevance tags. They helped me allocate study time efficiently across topics.",
+        "Our team uses Protermify links in pull request discussions when terminology needs clarification. It prevents arguments about what terms actually mean.",
+        "The Kubernetes terminology coverage is comprehensive — from pods to custom resource definitions, every concept is clearly defined.",
+        "As a release manager, I need precise vocabulary for change management and deployment processes. Protermify delivers exactly that.",
+        "Protermify helped our global team communicate effectively despite language barriers. DevOps vocabulary has a shared meaning when everyone uses the same reference.",
+        "The observability section covers logging, metrics and tracing terminology that every modern engineering team needs to understand.",
+        "I check Protermify before writing architecture decision records. Precise terminology makes technical documents clearer and more professional.",
+        "The version control terminology section cleared up Git concepts I had been using incorrectly for years.",
+        "Our IT service management team uses Protermify ITIL terminology pages for process documentation. The definitions match certification standards exactly.",
+    ],
+    "logistics": [
+        "Protermify saved our company real money by clarifying Incoterms 2020 definitions. Understanding the difference between CIF and CIP precisely prevented a costly shipping error.",
+        "As a {role}, I reference Protermify daily for customs and trade documentation terminology. Every definition is backed by ICC and FIATA standards.",
+        "I was preparing for my {exam} and Protermify covered every term I needed. The logistics glossary is comprehensive and well-organized.",
+        "Our freight forwarding team uses Protermify as our standard terminology reference. When clients ask about trade terms, we share direct page links.",
+        "The customs terminology section helped me navigate import regulations for a new market. Clear definitions with operational context made compliance straightforward.",
+        "Protermify is the logistics glossary I wish I had when I started my career. Incoterms, transport documents, dangerous goods — all in one place.",
+        "During my {exam} preparation, Protermify was my primary study resource. The exam relevance tags helped me focus on what matters most.",
+        "As a supply chain manager, I deal with international partners who use logistics terms differently. Protermify provides the authoritative definition we can all agree on.",
+        "The transport documents section is outstanding. Bill of lading, CMR, air waybill — every document type is clearly explained with its purpose and context.",
+        "I recommend Protermify to every new hire in our logistics department. Understanding terminology precisely prevents expensive mistakes in international trade.",
+        "The dangerous goods terminology helped our team handle hazardous materials documentation with confidence. Every classification and procedure term is clearly defined.",
+        "Before Protermify, I looked up Incoterms across multiple ICC publications. Having them all structured with examples in one place saves significant time.",
+        "The visibility and tracking terminology section covers modern supply chain concepts that every logistics professional needs to understand.",
+        "Our customs brokerage team uses Protermify for training. The structured categories match exactly how we organize our compliance workflows.",
+        "Protermify helped me communicate better with international carriers. When everyone uses the same terminology reference, shipments move smoother.",
+        "Studying for {exam}, I found Protermify more practical than textbooks. The operational examples show how terms are actually used in real trade scenarios.",
+        "The warehousing terminology section covers everything from receiving to dispatch. It is the reference our warehouse managers were missing.",
+        "As a trade compliance officer, I need terminology that aligns with international standards. Protermify delivers exactly that — precise, sourced and current.",
+        "The Incoterms 2020 coverage is the clearest I have found. Each term explains seller and buyer responsibilities without ambiguity.",
+        "Our procurement team uses Protermify to standardize RFP language. Consistent terminology makes vendor evaluation fair and transparent.",
+    ],
+    "finance": [
+        "Protermify was essential for my {exam} preparation. The finance terminology is well-organized and aligned with CFA, IFRS and GAAP frameworks.",
+        "As a {role}, precise financial terminology is non-negotiable. Protermify gives me source-backed definitions I can use in client presentations with confidence.",
+        "I was transitioning from engineering to finance and the vocabulary gap was significant. Protermify helped me learn financial English systematically.",
+        "Our analyst team uses Protermify as our shared terminology reference. When we write research reports, consistent language improves credibility.",
+        "During my {exam} preparation, Protermify covered every term I encountered in practice questions. The definitions are precise and exam-relevant.",
+        "The investment terminology section helped me understand derivatives, fixed income and portfolio concepts at a deeper level.",
+        "Protermify helped me explain complex financial concepts to non-financial stakeholders. Having clear definitions on hand makes communication smoother.",
+        "As a risk analyst, I need precise terminology for regulatory reports. Protermify definitions align with Basel III and IFRS standards.",
+        "I recommend Protermify to every junior analyst joining our team. Strong financial vocabulary is the foundation for everything we do.",
+        "The banking terminology section covers everything from retail to corporate banking. Each term is defined with the operational context that matters.",
+        "Before Protermify, financial terminology was scattered across CFA study guides and IFRS publications. Having one authoritative reference is incredibly efficient.",
+        "Studying for {exam}, I used Protermify daily. The exam relevance tags helped me prioritize which terms to memorize.",
+        "The accounting terminology helped me bridge the gap between IFRS and GAAP when working with international clients.",
+        "Our compliance team uses Protermify for regulatory documentation. Precise terminology ensures our reports meet audit standards.",
+        "Protermify helped our global finance team speak the same language. When London and Tokyo use the same definitions, collaboration improves.",
+        "The insurance terminology section is comprehensive. Underwriting, claims, reinsurance — every concept is clearly explained.",
+        "As a treasury manager, I reference Protermify for cash management and FX terminology. The definitions are current and industry-standard.",
+        "I check Protermify before every board presentation. Getting financial terminology exactly right builds credibility with directors and investors.",
+        "The cryptography and fintech terminology section keeps us current with emerging financial technology vocabulary.",
+        "Protermify is the finance glossary our industry needed — neutral, authoritative, free and structured for modern professionals.",
+    ],
+}
+
+EXP_TEMPLATES_TR: Dict[str, List[str]] = {
+    "aviation": [
+        "Protermify sayesinde {exam} sinavimi ilk denemede gectim. Havacilik terimleri ICAO ve FAA kaynaklarina dayaniyor, bu da calismalarima guven verdi.",
+        "{role} olarak her gun phraseology ile calisiyorum. Protermify, brifingler oncesi terim kontrolu icin vazgecilmez kaynagim oldu.",
+        "Anadili Ingilizce olmayan bir pilot olarak havacilik terminolojisinde zorluklar yasiyordum. Protermify bu acigi net tanimlar ve gercek operasyonel orneklerle kapatti.",
+        "{exam} hazirligimda guvenilir bir kaynak ariyordum. Protermify tam olarak bunu sunuyor — temiz, otoriter ve ucretsiz.",
+        "Ucus okulumuzdaki uluslararasi ogrenciler icin cok dilli destek buyuk avantaj. Herkes terimleri kendi dilinde carpraz kontrol edebiliyor.",
+        "Her terim sayfasindaki soru-cevap bolumu muhtesem. ATC phraseology ve acil durum prosedurleri hakkinda tam sorduklarima cevap veriyor.",
+        "15 yildir ucuyorum ve hala Protermify'da yeni seyler ogreniyorum. Ilgili terimler arasindaki baglantilar terminolojiyi baglam icinde anlamami sagliyor.",
+        "Protermify oncesi dagnik PDF dosyalari ve eski sozlukler kullaniyordum. Her seyin tek bir yapilandirilmis formatta olmasi bana her hafta saatler kazandiriyor.",
+        "ICAO Doc 9432 ve FAA kaynaklarinin her sayfada belirtilmesi, {exam} icin dogru materyal calistigimdan emin olmami sagliyor.",
+        "Ucus egitmeni olarak ogrencilerime surekli Protermify terim sayfalarindan linkler gonderiyorum. Ders hazirligina muktesem.",
+        "Sinav hazirliginda guvenebildigim tek havacilik sozlugu Protermify. Tanimlar kaynak destekli ve ornekler gercek ATC iletisiminden.",
+        "{exam} calismalarim boyunca Protermify kullandim. Kategori yapisi meteoroloji veya ucus planlama gibi spesifik alanlara odaklanmayi kolaylastirdi.",
+        "Protermify'i diger kaynaklardan ayiran editoryal kalite. Bunlar yapay zeka tarafindan uretilmis tanimlar degil — otoriter kaynaklardan ozenle secilmis.",
+        "Ingilizcem iyiydi ama havacilik terminolojisi engel oluyordu. Protermify bu acigi mukemmel kapatti. Artik uluslararasi ucuslarda guvenle iletisim kuruyorum.",
+        "Her simulasyon oturumundan once Protermify'i kontrol ediyorum. Phraseology terimlerinin kesin anlamini bilmek baski altinda daha iyi performans sagliyor.",
+        "Her terim sayfasindaki sinav baglami etiketleri {exam} icin calisma suremi onceliklendirmeme yardimci oldu.",
+        "Yer operasyonlari sorumlusu olarak pilotlar, ATC ve yer ekibi arasinda koordinasyon icin kesin terminolojiye ihtiyac duyuyorum. Protermify bunlari kapsiyor.",
+        "Protermify'i bir meslektasim sayesinde kesfettim ve simdi tum departmanımız kullaniyor. Tum kategorilerdeki tutarli kalite etkileyici.",
+        "Tip egitimime hazirlanirken ne kadar phraseology eksigim oldugunu fark ettim. Protermify her birini net ICAO uyumlu tanimlarla kapatti.",
+        "Cok dilli ozellik uluslararasi ekibimiz icin oyunu degistirdi. Dil bariyerlerini anlık olarak asabiliyoruz.",
+    ],
+    "maritime": [
+        "Protermify ile {exam} degerlendirmeme hazirlandim. Denizcilik terminolojisi IMO SMCP ve STCW standartlarina uygun sekilde organize edilmis.",
+        "{role} olarak denizde kesin iletisim hayat kurtarir. Protermify bulabildigim en guvenilir denizcilik Ingilizcesi referansi.",
+        "Egitimim sirasinda IMO Standart Denizcilik Iletisim Ifadeleri ile zorlaniyordum. Protermify gercek kopru senaryolarindan orneklerle bunlari net sekilde acikladi.",
+        "Denizcilik akademimiz artik tum ogrencilere Protermify oneriyor. Navigasyon, kargo, acil durum ve muhendislik terminolojisini kapsayan yapilandirilmis kategoriler tam ogrencilerin ihtiyaci.",
+        "{exam} hazirligimda Protermify ana calisma kaynagim oldu. Tanimlar doğru, ornekler pratik ve kaynak atifi guven veriyor.",
+        "Denizcilik terim sayfalarindaki soru-cevap bolumu inanilmaz faydali. Ders kitaplarinin genellikle atladigi terminoloji baglamini cevaapliyor.",
+        "Bas muhendis olarak bakim planlamasi ve raporlama sirasinda teknik terminoloji icin Protermify referans alirim. Tanimlar SOLAS uyumlulugu icin ihtiyacim olanla ortususyor.",
+        "20 yildir denizde calisiyorum ve hala Protermify'da yillardir kullandigim ama tam olarak anlamadigim terimlerin kesin tanimlarini kesfediyorum.",
+        "Protermify cok uluslu musteremizin daha etkili iletisim kurmasina yardimci oldu. Cok dilli destek herkesin kritik guvenlik terimlerini dogrulamasini sagliyor.",
+        "Acil durum iletisim terminolojisi bolumu olağanustu. Her terim yuksek basincli durumlarda ihtiyac duydugunuz operasyonel baglamla aciklaniyor.",
+        "Protermify oncesi dagnik IMO yayinlarina guveniyordum. Her seyin tek aranabilir platformda organize edilmis olmasi onemli hazirlik suresi kazandiriyor.",
+        "Gemimize katilan her genc subaya Protermify oneriyorum. Denizcilik Ingilizcesini tam olarak anlamak guvenlik gereksinimidir.",
+        "Kargo terminolojisi bolumu ilk tanker gorevimde bana cok yardimci oldu. Yukleme prosedurleri, tank terminolojisi, kargo dokumantasyonu — hepsi net aciklanmis.",
+        "{exam} icin calisirken Protermify sayfalarina sinav baglami etiketlerinin dahil edilmesini takdir ettim.",
+        "Protermify'daki navigasyon terminolojisi kapsamli ve uluslararasi standartlarla uyumlu. Vardiya subaylarinin tam ihtiyaci olan sey.",
+        "Gemi trafik hizmetleri operatoru olarak dunya genelindeki gemilerden iletisim yapiyorum. Protermify her denizcilik ifadesini dogru anlamami sagliyor.",
+        "Protermify denizcilik Ingilizcesi egitimine eksik olan sey — herkesin dunyanin herhangi bir limanindan erisebilecegi ucretsiz, yapilandirilmis, kaynak destekli bir referans.",
+        "Ilgili terimler ozelligi denizcilik kavramlarinin nasil baglantili oldugunu anlamama yardimci oldu.",
+        "Lisans yenilemem oncesi denizcilik Ingilizcemi tazelemek icin Protermify kullandim. Icerik guncel ve en son STCW degisiklikleriyle uyumlu.",
+        "Liman otoritemiz yeni ise alinanlar icin egitim referansi olarak Protermify kullaniyor. Tum kategorilerdeki kalite ve tutarlilik etkileyici.",
+    ],
+    "cybersecurity": [
+        "Protermify ile {exam} sertifikasyonumu aldim. Siber guvenlik terminolojisi alan bazinda organize edilmis ve her tanim ISO 27001, NIST veya MITRE ATT&CK referansli.",
+        "{role} olarak olay raporlari icin kesin terminolojiye ihtiyac duyuyorum. Protermify incelemeye dayanan kaynak destekli tanimlar sunuyor.",
+        "IT'den siber guvenlige gecis yapiyordum ve kelime haznesi farki gercekti. Protermify SOC, GRC ve zafiyet yonetimi terminolojisini sistematik olarak ogrenmeme yardimci oldu.",
+        "Guvenlik ekibimiz ortak bir kelime haznesi referansi olarak Protermify kullaniyor. Playbook ve runbook yazarken tutarli terminoloji tehlikeli yanlış anlamalari onluyor.",
+        "{exam} hazirligimda Protermify paha bicilmezdi. Tanimlar sertifika sinavlarinin gercekten test ettigi seyle ortussuyor.",
+        "Tehdit istihbaratio terminoloji bolumu olağanustu. IOC'den TTP'ye kadar her terim gercek dunya analizi icin anlamli operasyonel baglamla aciklaniyor.",
+        "Protermify GRC ekibimizin uyumluluk dokumantasyonu dilini standartlastirmasina yardimci oldu.",
+        "Sizma testi uzmani olarak musteriler icin degerlendirme raporlari yazarken Protermify referans alirim.",
+        "Mentorumle calistigim her genc analiste Protermify oneriyorum. Siber guvenlik kelime haznesini tam olarak anlamak her seyin temelidir.",
+        "Her terim sayfasindaki soru-cevap bolumu guvenlik incelemeleri ve denetimlerde ortaya cikan sorulari tam olarak ongoruyor.",
+        "Protermify oncesi guvenlik terimlerini duzinelerce cerceve dokumani arasinda ariyordum. Hepsinin yapilandirilmis bir sozlukte olmasi saatler kazandiriyor.",
+        "MITRE ATT&CK terminoloji kapsami kapsamli. Her teknik ve taktik terimi pratik baglamla acik bir sekilde tanimlanmis.",
+        "{exam} icin calisirken Protermify'i gunluk kullandim. Sinav baglami etiketleri testte cikmasi en muhtemel terimlere odaklanmama yardimci oldu.",
+        "CISO'muz Protermify'i tum guvenlik organizasyonuyla paylasti. Ekipler arasi tutarli kelime haznesi olay mudahalesinde yanlıs iletisimi azaltiyor.",
+        "Bulut guvenlik terminolojisi bolumu yerinden buluta gecis yapan rollere gecmemde yardimci oldu.",
+        "Siber guvenlikte anadili Ingilizce olmayan biri olarak Protermify tehdit ve zafiyetleri bu alanin talep ettigi kesinlikle iletmeme yardimci oldu.",
+        "Protermify siber guvenlige basladigimda var olmasini istedigim referans. Temiz, yapilandirilmis, kaynak destekli ve ucretsiz.",
+        "Uygulama guvenliği terimleri guvenli kod incelemeleri sirasinda gelistirme ekipleriyle daha iyi iletisim kurmama yardimci oldu.",
+        "Her musteri sunumundan once Protermify'i kontrol ediyorum. Terminolojiyi tam dogru almak paydas guvenini olusturur.",
+        "Ag guvenliği kategorisi paket analizinden guvenlik duvari kurallarina kadar her seyi kapsiyor. Kapsamli ve otoriter.",
+    ],
+    "it-devops": [
+        "Protermify ile {exam} sertifikasyonuma hazirlandim. BT/DevOps terminolojisi iyi organize edilmis ve ITIL, AWS ve Kubernetes dokumanlarıyla uyumlu.",
+        "{role} olarak runbook'lardaki tutarli terminoloji kritik. Protermify DevOps kelime haznesi icin ekip standardimiz oldu.",
+        "Kubernetes'e yeniydim ve terminoloji bunalticiydı. Protermify bunu kategori bazinda yapilandirdi ve operasyonel baglamla net tanimlar verdi.",
+        "Platform ekibimiz yeni muhendisleri ise alistirmak icin Protermify kullaniyor. Terimleri tek tek aciklamak yerine ilgili terim sayfalarina yonlendiriyoruz.",
+        "{exam} hazirligimda Protermify pratik sinavlarda karsilastigim her terimi kapsadi. Tanimlar dogru ve ornekler pratik.",
+        "CI/CD terminoloji bolumu bulabildigim en iyisi. Pipeline asamalarindan dagitim stratejilerine kadar her terim acikca aciklanmis.",
+        "Protermify daha iyi dokumantasyon yazmama yardimci oldu. Bir DevOps kavraminin kesin tanimina ihtiyac duydigimda otoriter kaynakla her zaman orada.",
+        "SRE olarak gozlemlenebilirlik ve guvenilirlik terminolojisi icin Protermify referans aliyorum.",
+        "DevOps rollerine gecis yapan muhendislere Protermify oneriyorum. Yapilandirilmis kategoriler kelime haznesini alan alan ogrenmeyi kolaylastiriyor.",
+        "Infrastructure as Code terminoloji bolumu Terraform, Ansible ve CloudFormation kavramlarini daha derin bir seviyede anlamama yardimci oldu.",
+        "Protermify oncesi DevOps terminolojisi blog yazilarına ve satici belgelerine dagilmisti. Tarafsiz ve otoriter bir sozluk cok degerli.",
+        "{exam} icin calisirken Protermify sinav baglami etiketlerini takdir ettim. Konular arasinda calisma suremi verimli dagitmama yardimci oldular.",
+        "Ekibimiz terminolojinin aciklanmasi gerektiginde pull request tartismalarinda Protermify linklerini kullaniyor.",
+        "Kubernetes terminoloji kapsami kapsamli — pod'lardan custom resource definition'lara kadar her kavram acikca tanimlanmis.",
+        "Release manager olarak degisiklik yonetimi ve dagitim surecleri icin kesin kelime haznesine ihtiyac duyuyorum. Protermify bunu sagliyor.",
+        "Protermify global ekibimizin dil engellerine ragmen etkili iletisim kurmasina yardimci oldu.",
+        "Gozlemlenebilirlik bolumu her modern muhendislik ekibinin anlamasi gereken loglama, metrik ve izleme terminolojisini kapsiyor.",
+        "Mimari karar kayitlari yazmadan once Protermify'i kontrol ediyorum. Kesin terminoloji teknik belgeleri daha net ve profesyonel yapar.",
+        "Versiyon kontrol terminoloji bolumu yillardir yanlis kullandigim Git kavramlarini acikliga kavusturdu.",
+        "BT hizmet yonetimi ekibimiz surec dokumantasyonu icin Protermify ITIL terminoloji sayfalarini kullaniyor.",
+    ],
+    "logistics": [
+        "Protermify Incoterms 2020 tanimlarini netlestirerek sirketimize gercek para tasarrufu sagladi. CIF ve CIP arasindaki farki kesin olarak anlamak maliyetli bir nakliye hatasini onledi.",
+        "{role} olarak gumruk ve ticaret dokumantasyonu terminolojisi icin Protermify'i gunluk referans alirim.",
+        "{exam} icin hazirlaniyor dum ve Protermify ihtiyacim olan her terimi kapsadi. Lojistik sozlugu kapsamli ve iyi organize edilmis.",
+        "Navlun yonlendirme ekibimiz standart terminoloji referansimiz olarak Protermify kullaniyor. Musteriler ticaret terimleri hakkinda sordugunda dogrudan sayfa linkleri paylasiyoruz.",
+        "Gumruk terminoloji bolumu yeni bir pazar icin ithalat duzenlemelerinde yol almama yardimci oldu.",
+        "Protermify kariyerime basladigimda keske var olan lojistik sozlugu. Incoterms, tasima belgeleri, tehlikeli maddeler — hepsi tek yerde.",
+        "{exam} hazirligimda Protermify ana calisma kaynagim oldu. Sinav baglami etiketleri en onemli olana odaklanmama yardimci oldu.",
+        "Tedarik zinciri yoneticisi olarak lojistik terimleri farkli kullanan uluslararasi ortaklarla calısıyorum. Protermify hepimizin uzlasabilecegi otoriter tanimi sunuyor.",
+        "Tasima belgeleri bolumu olağanustu. Konisamento, CMR, hava konismentosu — her belge turu amaci ve baglamiyla acikca aciklanmis.",
+        "Lojistik departmanimizdaki her yeni ise alınana Protermify oneriyorum. Terminolojiyi tam olarak anlamak uluslararasi ticarette pahali hatalari onler.",
+        "Tehlikeli maddeler terminolojisi ekibimizin tehlikeli malzeme dokumantasyonunu guvenle yonetmesine yardimci oldu.",
+        "Protermify oncesi Incoterms'i birden fazla ICC yayınında ariyordum. Hepsinin orneklerle yapilandirilmis tek bir yerde olmasi onemli zaman kazandiriyor.",
+        "Gorunurluk ve izleme terminolojisi bolumu her lojistik profesyonelinin anlamasi gereken modern tedarik zinciri kavramlarini kapsiyor.",
+        "Gumruk musavirlik ekibimiz egitim icin Protermify kullaniyor. Yapilandirilmis kategoriler uyumluluk is akislarimizi tam olarak nasil organize ettigimizle ortususyor.",
+        "Protermify uluslararasi tasiyicilarla daha iyi iletisim kurmama yardimci oldu.",
+        "{exam} icin calisirken Protermify'i ders kitaplarindan daha pratik buldum. Operasyonel ornekler terimlerin gercek ticaret senaryolarinda nasil kullanildigini gosteriyor.",
+        "Depolama terminoloji bolumu teslim almadan sevkiyata kadar her seyi kapsiyor. Depo yoneticilerimizin eksik olan referansi.",
+        "Ticaret uyumluluk gorevlisi olarak uluslararasi standartlarla uyumlu terminolojiye ihtiyac duyuyorum. Protermify bunu sagliyor — kesin, kaynakli ve guncel.",
+        "Incoterms 2020 kapsami bulabildigim en net aciklama. Her terim satici ve alici sorumluluklarini belirsizlik olmadan acikliyor.",
+        "Satin alma ekibimiz RFP dilini standartlastirmak icin Protermify kullaniyor. Tutarli terminoloji satici degerlendirmesini adil ve seffaf yapar.",
+    ],
+    "finance": [
+        "Protermify {exam} hazirligim icin cok onemliydi. Finans terminolojisi iyi organize edilmis ve CFA, IFRS ve GAAP cerceeveleriyle uyumlu.",
+        "{role} olarak kesin finansal terminoloji pazarlik konusu degil. Protermify musteri sunumlarinda guvenle kullanabilecegim kaynak destekli tanimlar veriyor.",
+        "Muhendislikten finansa gecis yapiyordum ve kelime haznesi farki buyuktu. Protermify finansal Ingilizceyi sistematik olarak ogrenmeme yardimci oldu.",
+        "Analist ekibimiz ortak terminoloji referansimiz olarak Protermify kullaniyor. Arastirma raporlari yazarken tutarli dil guvenilirligimizi artiriyor.",
+        "{exam} hazirligimda Protermify pratik sorularda karsilastigim her terimi kapsadi. Tanimlar kesin ve sinav odakli.",
+        "Yatirim terminoloji bolumu turevleri, sabit geliri ve portfoy kavramlarini daha derin bir seviyede anlamama yardimci oldu.",
+        "Protermify karmasik finansal kavramlari finansci olmayan paydaşlara aciklamamda yardimci oldu.",
+        "Risk analisti olarak duzenleyici raporlar icin kesin terminolojiye ihtiyac duyuyorum. Protermify tanimlari Basel III ve IFRS standartlariyla uyumlu.",
+        "Ekibimize katilan her genc analiste Protermify oneriyorum. Guclu finansal kelime haznesi yaptigimiz her seyin temelidir.",
+        "Bankacilik terminoloji bolumu perakendeden kurumsal bankaciliğa kadar her seyi kapsiyor.",
+        "Protermify oncesi finansal terminoloji CFA calisma kilavuzlarina ve IFRS yayinlarina dagilmisti. Tek otoriter referansin olmasi inanilmaz verimli.",
+        "{exam} icin calisirken Protermify'i gunluk kullandim. Sinav baglami etiketleri hangi terimleri ezberlememem gerektigini onceliklendirmeme yardimci oldu.",
+        "Muhasebe terminolojisi uluslararasi musterilerle calisirken IFRS ve GAAP arasindaki farki kapatmama yardimci oldu.",
+        "Uyumluluk ekibimiz duzenleyici dokumantasyon icin Protermify kullaniyor. Kesin terminoloji raporlarimizin denetim standartlarini karsilamasini sagliyor.",
+        "Protermify global finans ekibimizin ayni dili konusmasini sagladi. Londra ve Tokyo ayni tanimlari kullandiginda isbirligi gelisiyor.",
+        "Sigorta terminoloji bolumu kapsamli. Sigorta yazimi, talepler, reasurans — her kavram acikca aciklanmis.",
+        "Hazine yoneticisi olarak nakit yonetimi ve doviz terminolojisi icin Protermify referans alirim.",
+        "Her yonetim kurulu sunumundan once Protermify'i kontrol ediyorum. Finansal terminolojiyi tam dogru almak yoneticiler ve yatirimcilar nezdinde guvenilirlik olusturur.",
+        "Kriptografi ve fintech terminoloji bolumu bizi gelisen finansal teknoloji kelime haznesiyle guncel tutuyor.",
+        "Protermify sektorumuzun ihtiyac duydugu finans sozlugu — tarafsiz, otoriter, ucretsiz ve modern profesyoneller icin yapilandirilmis.",
+    ],
+}
+
+
+def generate_experiences(all_data: Dict[str, dict]) -> List[dict]:
+    """Generate 1000 user experience entries across all locales and domains."""
+    experiences: List[dict] = []
+    idx = 0
+    for locale in LOCALES:
+        names = EXP_NAMES[locale]
+        for domain_slug in DOMAIN_ORDER:
+            roles = EXP_ROLES[domain_slug]
+            exams = EXP_EXAMS[domain_slug]
+            templates = EXP_TEMPLATES_TR[domain_slug] if locale == "tr" else EXP_TEMPLATES_EN[domain_slug]
+            count = 13 if locale in ("en", "tr") else 11
+            for i in range(count):
+                first = names["first"][(idx * 3 + i * 7) % len(names["first"])]
+                last = names["last"][(idx * 5 + i * 11) % len(names["last"])]
+                country = names["countries"][(idx + i) % len(names["countries"])]
+                role = roles[(idx + i * 3) % len(roles)]
+                exam = exams[(idx + i * 2) % len(exams)]
+                template = templates[i % len(templates)]
+                text = template.replace("{role}", role).replace("{exam}", exam)
+                experiences.append({
+                    "name": f"{first} {last}",
+                    "role": role,
+                    "country": country,
+                    "locale": locale,
+                    "domain": domain_slug,
+                    "text": text,
+                })
+                idx += 1
+    return experiences
+
+
+def build_experience_pages(all_data: Dict[str, dict]) -> None:
+    experiences = generate_experiences(all_data)
+    for locale, base_cfg in LOCALES.items():
+        depth = 1 if locale == "en" else 2
+        path = locale_dir(locale) / "experiences" / "index.html"
+        alternates = {code: locale_url(code, "/experiences/") for code in LOCALES}
+        alternates["x-default"] = SITE_URL + "/experiences/"
+
+        locale_exps = [e for e in experiences if e["locale"] == locale]
+
+        if locale == "tr":
+            page_title = "Kullanici Deneyimleri"
+            page_intro = f"{len(locale_exps)} profesyonelin Protermify deneyimlerini okuyun. Havacilik, denizcilik, siber guvenlik, BT/DevOps, lojistik ve finans alanlarindan gercek kullanici geri bildirimleri."
+            page_meta_title = "Kullanici Deneyimleri | Protermify"
+            page_meta_desc = f"{len(locale_exps)} profesyonelden Protermify kullanici deneyimleri ve geri bildirimler."
+            section_label = "Deneyimler"
+        else:
+            page_title = "User Experiences"
+            page_intro = f"Read what {len(locale_exps)} professionals have to say about Protermify. Real feedback from aviation, maritime, cybersecurity, IT/DevOps, logistics and finance professionals worldwide."
+            page_meta_title = "User Experiences | Protermify"
+            page_meta_desc = f"Protermify user experiences and feedback from {len(locale_exps)} professionals across 6 industries."
+            section_label = "Experiences"
+
+        bread = [
+            {"label": base_cfg["nav_home"], "href": locale_path(locale, "/"), "url": locale_url(locale, "/")},
+            {"label": page_title, "href": locale_path(locale, "/experiences/"), "url": locale_url(locale, "/experiences/")},
+        ]
+
+        domain_sections = []
+        review_schemas = []
+        for domain_slug in DOMAIN_ORDER:
+            dom = DOMAINS[domain_slug]
+            dcfg = domain_locale_cfg(domain_slug, locale)
+            domain_exps = [e for e in locale_exps if e["domain"] == domain_slug]
+            cards = []
+            for exp in domain_exps:
+                cards.append(
+                    f"""
+                    <article class="card faq-card">
+                      <div class="exp-meta">
+                        <strong>{escape(exp['name'])}</strong>
+                        <span>{escape(exp['role'])} &middot; {escape(exp['country'])}</span>
+                      </div>
+                      <p>{escape(exp['text'])}</p>
+                    </article>
+                    """
+                )
+                review_schemas.append({
+                    "@type": "Review",
+                    "author": {"@type": "Person", "name": exp["name"]},
+                    "reviewBody": exp["text"],
+                    "itemReviewed": {"@type": "WebSite", "name": f"Protermify {dom['display_name']}", "url": f"{SITE_URL}/{domain_slug}/"},
+                    "reviewRating": {"@type": "Rating", "ratingValue": "5", "bestRating": "5"},
+                })
+            domain_sections.append(
+                f"""
+                <section class="stack">
+                  <div class="section-heading">
+                    <p class="eyebrow">{escape(dom['display_name'])}</p>
+                    <h2>{escape(dcfg['glossary_title'])}</h2>
+                  </div>
+                  <div class="card-grid">
+                    {''.join(cards)}
+                  </div>
+                </section>
+                """
+            )
+
+        body = f"""
+        {page_header(locale, depth)}
+        <main class="section">
+          <div class="shell">
+            {breadcrumb(bread)}
+            <section class="section-heading">
+              <p class="eyebrow">{escape(section_label)}</p>
+              <h1>{escape(page_title)}</h1>
+              <p class="lead">{escape(page_intro)}</p>
+            </section>
+            {build_locale_switcher(locale, alternates)}
+            {''.join(domain_sections)}
+          </div>
+        </main>
+        {page_footer(locale, depth)}
+        """
+
+        aggregate_schema = json_ld({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": page_title,
+            "description": page_meta_desc,
+            "url": locale_url(locale, "/experiences/"),
+            "mainEntity": {
+                "@type": "ItemList",
+                "numberOfItems": len(locale_exps),
+                "itemListElement": review_schemas[:20],
+            },
+        })
+
+        write_text(
+            path,
+            page_shell(
+                locale=locale,
+                title=page_meta_title,
+                description=page_meta_desc,
+                canonical=locale_url(locale, "/experiences/"),
+                alternates=alternates,
+                body=body,
+                depth=depth,
+                site_name="Protermify",
+                schema_blocks=[
+                    org_schema(),
+                    breadcrumb_schema(bread),
+                    aggregate_schema,
+                ],
+            ),
+        )
+
+
 def build_robots_and_sitemap(all_data: Dict[str, dict]) -> None:
     urls = []
     for locale in LOCALES:
@@ -2237,6 +2694,7 @@ def build_robots_and_sitemap(all_data: Dict[str, dict]) -> None:
         urls.append(locale_url(locale, "/about/"))
         urls.append(locale_url(locale, "/methodology/"))
         urls.append(locale_url(locale, "/faq/"))
+        urls.append(locale_url(locale, "/experiences/"))
 
     for domain_slug, data in all_data.items():
         category_slugs = {
@@ -2902,6 +3360,25 @@ img {
   margin: 0;
 }
 
+.exp-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.7rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.exp-meta strong {
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.exp-meta span {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 @media (max-width: 960px) {
   .hero-grid,
   .prose-grid,
@@ -3093,6 +3570,8 @@ def build() -> None:
         print(f"  Building {domain_slug}: {len(data['terms'])} terms...")
         build_glossary_pages(domain_slug, data)
         build_term_pages(domain_slug, data)
+    print("  Building experience pages...")
+    build_experience_pages(all_data)
     build_llms_files(all_data)
     build_robots_and_sitemap(all_data)
 

@@ -565,6 +565,25 @@ img {
   margin: 0;
 }
 
+.exp-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.7rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.exp-meta strong {
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.exp-meta span {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 @media (max-width: 960px) {
   .hero-grid,
   .prose-grid,
