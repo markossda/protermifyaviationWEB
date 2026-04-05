@@ -7,6 +7,18 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
+User-agent: Applebot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
 User-agent: OAI-SearchBot
 Allow: /
 
@@ -16,4 +28,17 @@ Allow: /
 User-agent: ChatGPT-User
 Allow: /
 
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+Host: protermifyaviation.com
 Sitemap: https://protermifyaviation.com/sitemap.xml
