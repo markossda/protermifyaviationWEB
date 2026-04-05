@@ -1196,7 +1196,7 @@ def build_home_page(all_data: Dict[str, dict]) -> None:
         hero_intro = f"Browse {total_terms} terms across aviation, maritime, cybersecurity, IT/DevOps, logistics and finance with source-backed definitions in {len(LOCALES)} languages." if locale != "tr" else f"Havacilik, denizcilik, siber guvenlik, BT/DevOps, lojistik ve finans alanlarinda {total_terms} terimi {len(LOCALES)} dilde kaynak destekli tanimlarla inceleyin."
 
         body = f"""
-        {page_header(locale, 0, "Protermify", hero_intro[:80])}
+        {page_header(locale, 0, "Protermify", "Professional English Glossary Platform" if locale != "tr" else "Profesyonel Ingilizce Sozluk Platformu")}
         <main>
           <section class="hero">
             <div class="shell hero-grid">
