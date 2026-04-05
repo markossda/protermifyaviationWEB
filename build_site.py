@@ -595,7 +595,7 @@ def build_term_qa_items(
     ]
 
 
-def meta_tags(title: str, description: str, canonical: str, og_locale: str, site_name: str = "Protermify Aviation") -> str:
+def meta_tags(title: str, description: str, canonical: str, og_locale: str, site_name: str = "Protermify Aviation", favicon_path: str = "assets/termify_logo.png") -> str:
     return f"""
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -611,6 +611,8 @@ def meta_tags(title: str, description: str, canonical: str, og_locale: str, site
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{escape(title)}">
     <meta name="twitter:description" content="{escape(description)}">
+    <link rel="icon" type="image/png" href="{escape(favicon_path)}">
+    <link rel="apple-touch-icon" href="{escape(favicon_path)}">
     """
 
 
@@ -638,7 +640,7 @@ def page_shell(
     return f"""<!doctype html>
 <html lang="{escape(t['html_lang'])}" dir="{escape(t['dir'])}">
 <head>
-{meta_tags(title, description, canonical, t['locale'], site_name)}
+{meta_tags(title, description, canonical, t['locale'], site_name, logo_path(depth))}
 {alternate_links(alternates)}
 <link rel="stylesheet" href="{asset_path(depth)}">
 <script>
